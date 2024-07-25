@@ -4,6 +4,9 @@ const bodyParser = require('body-parser');
 require("dotenv").config();
 const app = express();
 const sequelize = require('./util/database');
+const cors = require('cors');
+
+app.use(cors());
 
 // Middleware para analisar dados de formulário
 app.use(bodyParser.urlencoded({ extended: false }));
