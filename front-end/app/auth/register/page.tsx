@@ -1,10 +1,13 @@
 'use client'
-
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css'
 import { FormEvent, useState } from "react";
 import { z } from "zod";
 import axios from 'axios';
-import { redirect } from 'next/navigation'
+import { useRouter } from "next/navigation";
+import queryString from "query-string";
 
+//input validation and cleaning
 const formSchema = z.object({
     name: z
         .string({ required_error: "Name is required" })
@@ -44,9 +47,7 @@ const [formError, setFormError] = useState<z.ZodFormattedError<
 
 const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
     const formData = new FormData(e.target as HTMLFormElement);
-
     const formDataValues = {
     name: formData.get("name"),
     email: formData.get("email"),
@@ -64,7 +65,7 @@ const handleSubmit = async (e: FormEvent) => {
     } else {
         setFormError(null);
     }
-
+    //try sending register form to back-end
     try {
         const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/user/create`, {
         name: formDataValues.name,
@@ -72,19 +73,23 @@ const handleSubmit = async (e: FormEvent) => {
         password: formDataValues.password,
         passwordConfirm: formDataValues.passwordConfirm
         });
-        //Redirect to /auth/login
-        redirect('/auth/login')
+        const url = queryString.stringifyUrl({
+            url: '/auth/login',
+            query: { registered:'sucess' }
+        })
+        router.push(url)
     } catch (error) {
-        console.log(error);
+        toast.error(`${error.response.data.message}`)
     }
     
     } catch (error) {
-    console.log(error);
+        console.log(error);
     }
 };
-
+const router = useRouter();
 return (
     <>
+        <ToastContainer/>
         <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                 <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-indigo-200">Register your account</h2>

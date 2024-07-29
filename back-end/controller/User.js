@@ -82,28 +82,34 @@ exports.login = async (req, res) => {
     const { email, password } = req.body
     const user = await User.findOne({where: {email: email}})
     if(user){
-        const passwordCheck = bcrypt.compare(password, user.password)
-        if(passwordCheck){
-            const token = jwt.sign(
-                {
-                  id: user.id,
-                  email: user.email,
-                  name: user.name,
-                  admin: user.admin
-                },
-                "RANDOM-TOKEN",
-                { expiresIn: process.env.TOKEN_EXPIRES_IN }
-            );
-            res.status(200).send({
-                message: "Login Successful",
-                email: user.email,
-                token,
-            })
-        } else {
-            res.status(404).send({
-                message: 'This email is not registered.'
-            })
-        }
+        bcrypt.compare(password, user.password)
+        .then((result => {
+            if(result){
+                const token = jwt.sign(
+                    {
+                      id: user.id,
+                      email: user.email,
+                      name: user.name,
+                      admin: user.admin
+                    },
+                    "RANDOM-TOKEN",
+                    { expiresIn: process.env.TOKEN_EXPIRES_IN }
+                );
+                res.status(200).send({
+                    message: "Login Successful",
+                    email: user.email,
+                    token,
+                })
+            } else {
+                res.status(404).send({
+                    message: 'Wrong Password or Email.'
+                })
+            }
+        }))
+    } else {
+       res.status(404).send({
+        message: 'Wrong Password or Email.'
+       }) 
     }
 }
 
